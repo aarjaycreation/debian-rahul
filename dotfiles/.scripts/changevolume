@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Function to send a notification with the current volume
+function send_notification() {
+    volume=$(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}' | sed 's/%//')
+    dunstify -a "changevolume" -u low -r 9993 -h int:value:"$volume" -i "volume-$1" "Volume: ${volume}%" -t 2000
+}
+
+case $1 in
+up)
+    # Set the volume on (if it was muted)
+    pactl set-sink-mute @DEFAULT_SINK@ 0
+    pactl set-sink-volume @DEFAULT_SINK@ +2%
+    send_notification up
+    ;;
+down)
+    pactl set-sink-mute @DEFAULT_SINK@ 0
+    pactl set-sink-volume @DEFAULT_SINK@ -2%
+    send_notification down
+    ;;
+mute)
+    if pactl list sinks | grep -q 'Mute: yes'; then
+        pactl set-sink-mute @DEFAULT_SINK@ 0
+        send_notification up
+    else
+        pactl set-sink-mute @DEFAULT_SINK@ 1
+        dunstify -i volume-mute -a "changevolume" -t 2000 -r 9993 -u low "Muted"
+    fi
+    ;;
+*)
+    echo "Usage: $0 {up|down|mute}"
+    exit 1
+    ;;
+esac

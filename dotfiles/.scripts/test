@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Function to display the GUI menu using yad with buttons
+show_menu() {
+    choice=$(yad --width=300 --height=200 --title="Script Selection Menu" \
+        --button="Run Script 1:1" \
+        --button="Run Script 2:2" \
+        --button="Run Script 3:3" \
+        --button="Exit:4" \
+        --text "Select an option:" --center)
+
+    echo "$choice"
+}
+
+# Function to run the selected script
+run_script() {
+    case $1 in
+        1)
+            yad --info --text="Running Script 1..." --width=200 --height=100
+            ./script1.sh
+            ;;
+        2)
+            yad --info --text="Running Script 2..." --width=200 --height=100
+            ./script2.sh
+            ;;
+        3)
+            yad --info --text="Running Script 3..." --width=200 --height=100
+            ./script3.sh
+            ;;
+        4)
+            yad --info --text="Exiting..." --width=200 --height=100
+            exit 0
+            ;;
+        *)
+            yad --error --text="Invalid option, please try again." --width=200 --height=100
+            ;;
+    esac
+}
+
+# Main loop
+while true; do
+    choice=$(show_menu)
+    run_script "$choice"
+done

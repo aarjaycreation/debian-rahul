@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Get the current volume level
+current_vol=$(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}' | sed 's/%//')
+
+# Determine the icon and text based on the volume level
+if [ "$current_vol" -eq 0 ]; then
+    icon=""
+    vol_perc="0%"
+elif [ "$current_vol" -ge 50 ]; then
+    icon=""
+    vol_perc="$current_vol%"
+elif [ "$current_vol" -ge 10 ]; then
+    icon=""
+    vol_perc="$current_vol%" 
+else
+    icon=""
+    vol_perc="$current_vol%"
+fi
+
+# Output the result
+echo "$icon $vol_perc"

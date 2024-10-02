@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Define colors for output
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+YELLOW="\033[1;33m"
+NC="\033[0m" # No Color
+
+# Check if the system uses apt
+if command -v apt > /dev/null 2>&1; then
+    # Attempt to install nala if not already installed
+    if ! command -v nala > /dev/null 2>&1; then
+        echo -e "${YELLOW}Attempting to install nala...${NC}"
+        if ./install_nala; then
+            echo -e "${GREEN}Nala installed successfully.${NC}"
+        else
+            echo -e "${RED}Failed to install nala. Falling back to apt.${NC}"
+        fi
+    fi
+
+    echo -e "${YELLOW}Installing dependencies...${NC}"
+
+    # Define a list of main packages
+    packages=(
+        "xorg-dev"
+        "sxhkd"
+        "kitty"
+        "flameshot"
+        "ranger"
+        "gcc"
+        "make"
+        "libx11-dev"
+        "libxft-dev"
+        "libxinerama-dev"
+    )
+
+    # Function to read and append common packages from a file
+    read_common_packages() {
+        local common_file="$1"
+        if [ -f "$common_file" ]; then
+            while IFS= read -r pkg; do
+                # Ignore empty lines and comments
+                [[ -z "$pkg" || "$pkg" =~ ^# ]] && continue
+                packages+=("$pkg")
+            done < "$common_file"
+        else
+            echo -e "${RED}Common packages file not found: $common_file${NC}"
+        fi
+    }
+
+    # Function to install packages if they are not already installed
+    install_packages() {
+        local pkgs=("$@")
+        local missing_pkgs=()
+
+        # Check if each package is installed
+        for pkg in "${pkgs[@]}"; do
+            if ! dpkg -l | grep -qw "$pkg"; then
+                missing_pkgs+=("$pkg")
+            fi
+        done
+
+        # Install missing packages
+        if [ ${#missing_pkgs[@]} -gt 0 ]; then
+            echo -e "${YELLOW}Installing missing packages: ${missing_pkgs[@]}${NC}"
+            if command -v nala > /dev/null 2>&1; then
+                sudo nala update
+                sudo nala install -y "${missing_pkgs[@]}"
+            else
+                sudo apt update
+                sudo apt install -y "${missing_pkgs[@]}"
+            fi
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}Failed to install some packages.${NC}"
+            fi
+        else
+            echo -e "${GREEN}All required packages are already installed.${NC}"
+        fi
+    }
+
+    # Define the file path for common packages
+    common_packages_file="$HOME/debian-rahul/scripts/common_packages.txt"
+    
+    # Read additional packages from the file
+    read_common_packages "$common_packages_file"
+
+    # Install all the required packages
+    install_packages "${packages[@]}"
+
+    # Enable services
+    echo -e "${YELLOW}Enabling services...${NC}"
+    sudo systemctl enable avahi-daemon
+    sudo systemctl enable acpid
+
+    # Update user directories
+    xdg-user-dirs-update
+    mkdir -p "$HOME/Screenshots"
+
+    # Ensure /usr/share/xsessions directory exists
+    if [ ! -d /usr/share/xsessions ]; then
+        echo -e "${YELLOW}Creating /usr/share/xsessions directory...${NC}"
+        sudo mkdir -p /usr/share/xsessions
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Failed to create /usr/share/xsessions directory. Exiting.${NC}"
+            exit 1
+        fi
+    fi
+
+    # Run picom installer script
+    if ./picom; then
+        echo -e "${GREEN}Picom installed successfully.${NC}"
+    else
+        echo -e "${RED}Failed to install Picom.${NC}"
+    fi
+
+else
+    echo -e "${YELLOW}apt is not available. Launching Linutil...${NC}"
+    curl -fsSL https://christitus.com/linux | sh
+fi

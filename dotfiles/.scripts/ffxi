@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd /usr/bin
+
+# Run FFXI Windower
+/usr/bin/lutris lutris:rungameid/2

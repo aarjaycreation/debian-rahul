@@ -1,0 +1,32 @@
+#!/bin/bash
+
+API_KEY="8632797dcd35637dc1420bf5150685cc"
+CITY="Sundsvall,SE"
+UNITS="metric"
+
+weather_data=$(curl -s "http://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=${UNITS}&appid=${API_KEY}")
+
+if [ $? -ne 0 ] || [ -z "$weather_data" ]; then
+    echo "Error fetching weather data"
+    exit 1
+fi
+
+temperature=$(echo "$weather_data" | jq -r '.main.temp')
+temperature_min=$(echo "$weather_data" | jq -r '.main.temp_min')
+temperature_max=$(echo "$weather_data" | jq -r '.main.temp_max')
+name=$(echo "$weather_data" | jq -r '.name')
+description=$(echo "$weather_data" | jq -r '.weather[0].description')
+icon=$(echo "$weather_data" | jq -r '.weather[0].icon')
+capitalized_description=$(echo "$description" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')
+
+# Round up the temperature
+rounded_temperature=$(echo "$temperature" | awk '{print int($1+0.9999)}')
+rounded_temperature_min=$(echo "$temperature_min" | awk '{print int($1+0.9999)}')
+rounded_temperature_max=$(echo "$temperature_max" | awk '{print int($1+0.9999)}')
+
+#${capitalized_description}
+#weather_info="${weather_icon} ${rounded_temperature}°C"
+weather_info="${rounded_temperature}°C"
+#weather_info="${rounded_temperature}°C"
+
+echo "$weather_info"

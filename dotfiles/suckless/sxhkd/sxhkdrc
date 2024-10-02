@@ -1,0 +1,77 @@
+#####################
+# Application keybindings #
+#####################
+
+#super + b
+#    firefox-esr
+    
+#super + shift + b
+#	firefox-esr -private-window
+
+# rofi launchers
+#super + r
+#   	rofi -show drun -modi drun -line-padding 4 -hide-scrollbar -show-icons
+   	
+#super + x
+#	alacritty
+
+	
+# help with shortcuts
+super + h
+	kitty -e ~/.config/suckless/sxhkd/keyhelper.sh  
+	
+# make sxhkd reload its configuration files:
+super + Escape
+	pkill -USR1 -x sxhkd; notify-send 'sxhkd' 'Reloaded config'
+# application launchers
+
+#super + f
+#	thunar
+
+super + e 	
+	thunar
+
+#super + g
+#	gimp
+		
+#super + d
+#	Discord
+
+#super + o
+#	obs
+	
+# Change volume, chunky
+super + Insert
+    ~/.scripts/changevolume up
+    
+super + Delete
+	~/.scripts/changevolume down
+	
+super + m
+	~/.scripts/changevolume mute
+	
+# dedicated volume keys
+{XF86AudioRaiseVolume,XF86AudioLowerVolume}
+	pamixer {-i,-d} 2
+
+# dedicated backlight keys
+#{XF86MonBrightnessUp,XF86MonBrightnessDown}
+#	xbacklight {+10,-10}
+	
+#########
+# Scrot #
+#########
+super + @Print
+	flameshot gui --path $HOME/Pictures/Screenshots/
+
+@Print
+	flameshot full --path $HOME/Pictures/Screenshots/
+
+super + p
+	flameshot gui --path $HOME/Pictures/Screenshots/
+
+shift + super + p
+	flameshot full --path $HOME/Pictures/Screenshots/
+	
+super + ctrl + q 
+	~/.scripts/power

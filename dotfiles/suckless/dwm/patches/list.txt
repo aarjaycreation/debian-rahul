@@ -1,0 +1,21 @@
+[1016]  [00;34m.[0m/
+(0tqq (B[ 504]  [00mdwm-alwayscenter-20200625-f04cac6.diff[0m
+(0tqq (B[1.5K]  [00mdwm-attachbottom-6.3.diff[0m
+(0tqq (B[5.1K]  [00mdwm-autostart-20210120-cb3f58a.diff[0m
+(0tqq (B[ 811]  [00mdwm-fixborders-6.2.diff[0m
+(0tqq (B[3.6K]  [00mdwm-focusadjacenttag-6.3.diff[0m
+(0tqq (B[6.2K]  [00mdwm-focusedontop-6.5.diff[0m
+(0tqq (B[1.7K]  [00mdwm-focusonnetactive-6.2.diff[0m
+(0tqq (B[1.5K]  [00mdwm-hide_vacant_tags-6.2.diff[0m
+(0tqq (B[3.3K]  [00mdwm-movestack-20211115-a786211.diff[0m
+(0tqq (B[5.4K]  [00mdwm-pertag-20200914-61bb8b2.diff[0m
+(0tqq (B[3.2K]  [00mdwm-restartsig-20180523-6.2.diff[0m
+(0tqq (B[7.8K]  [00mdwm-scratchpads-20200414-728d397b.diff[0m
+(0tqq (B[ 27K]  [00mdwm-status2d-systray-6.4.diff[0m
+(0tqq (B[ 25K]  [00mdwm-vanitygaps-6.2.diff[0m
+(0tqq (B[5.3K]  [00mdwm-windowfollow-20221002-69d5652.diff[0m
+(0tqq (B[ 12K]  [00mdwm-winicon-6.3-v2.1.diff[0m
+(0tqq (B[1.2K]  [00mhideempty.patch[0m
+(0mqq (B[   0]  [00mlist.txt[0m
+
+1 directory, 18 files
