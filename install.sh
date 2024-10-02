@@ -144,8 +144,26 @@ configure_backgrounds() {
     fi
 }
 
-# Function to set up the display manager
+# Function to detect package manager
+detect_package_manager() {
+    if command -v dnf >/dev/null 2>&1; then
+        PACKAGER="dnf"
+    elif command -v apt-get >/dev/null 2>&1; then
+        PACKAGER="apt-get"
+    elif command -v nala >/dev/null 2>&1; then
+        PACKAGER="nala"
+    elif command -v pacman >/dev/null 2>&1; then
+        PACKAGER="pacman"
+    else
+        echo -e "${RED}Unsupported package manager. Please install Xorg manually.${NC}"
+        exit 1
+    fi
+}
+
 setupDisplayManager() {
+    # Detect the package manager
+    detect_package_manager
+
     printf "%b\n" "${YELLOW}Setting up Xorg${NC}"
     case "$PACKAGER" in
         pacman) "$ESCALATION_TOOL" "$PACKAGER" -S --needed --noconfirm xorg-xinit xorg-server ;;
@@ -181,6 +199,9 @@ setupDisplayManager() {
         systemctl enable "$DM"
     fi
 }
+
+
+
 
 # Function to install dwm
 install_Dwm() {
