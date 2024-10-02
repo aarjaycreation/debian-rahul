@@ -4,7 +4,10 @@
 GREEN="\033[1;32m"
 RED="\033[1;31m"
 YELLOW="\033[1;33m"
-NC="\033[0m"
+NC="\033[0m"  # No Color
+
+# Define the escalation tool (sudo)
+ESCALATION_TOOL="sudo"
 
 echo -e "${YELLOW}Running script...${NC}"
 
@@ -22,18 +25,14 @@ echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Installing dependencies"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
-# Prompt user to install dependencies that require 
-echo -e "${YELLOW}Please ensure you have the following dependencies installed:${NC}"
-
-
-# Create directories safely
+# Ensure required directories exist
 mkdir -p "$CONFIG_DIR"
-cd "$SCRIPTS_DIR" || { echo "Failed to change directory to $SCRIPTS_DIR"; exit 1; }
+cd "$SCRIPTS_DIR" || { echo -e "${RED}Failed to change directory to $SCRIPTS_DIR${NC}"; exit 1; }
 
 # Make sure all scripts are executable
-chmod +x install_packages
-chmod +x install_nala
-chmod +x picom
+chmod +x install_packages install_nala picom
+
+# Execute the installation scripts
 ./install_packages
 
 # Moving dotfiles to the correct location
@@ -59,36 +58,135 @@ echo -e "${GREEN}            Fixing Home dir permissions"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
 chown -R "$USER":"$USER" "$USER_HOME/.config"
-chown -R "$USER":"$USER" "$USER_HOME/scripts"
 chown "$USER":"$USER" "$USER_HOME/.bashrc"
 chown -R "$USER":"$USER" "$USER_HOME/.local"
 chown "$USER":"$USER" "$USER_HOME/.xinitrc"
 
-echo -e "${GREEN}---------------------------------------------------"
-echo -e "${GREEN}                 Updating Timezone"
-echo -e "${GREEN}---------------------------------------------------${NC}"
+# Function to install Meslo Nerd Fonts
+install_nerd_font() {
+    FONT_DIR="$HOME/.local/share/fonts"
+    FONT_ZIP="$FONT_DIR/Meslo.zip"
+    FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
+    FONT_INSTALLED=$(fc-list | grep -i "Meslo")
 
-if command -v apt > /dev/null 2>&1; then
-     dpkg-reconfigure tzdata
-else
-    echo -e "${YELLOW}Unable to detect APT. Skipping."
-fi
+    if [ -n "$FONT_INSTALLED" ]; then
+        printf "%b\n" "${GREEN}Meslo Nerd-fonts are already installed.${NC}"
+        return 0
+    fi
 
-echo -e "${GREEN}---------------------------------------------------"
-echo -e "${GREEN}            Building DWM and SLStatus"
-echo -e "${GREEN}---------------------------------------------------${NC}"
+    printf "%b\n" "${YELLOW}Installing Meslo Nerd-fonts${NC}"
 
-cd "$HOME/.config/suckless/dwm"
- make clean install 
-cd "$HOME/.config/suckless/slstatus"
- make clean install 
+    mkdir -p "$FONT_DIR"
+    curl -sSLo "$FONT_ZIP" "$FONT_URL" || { printf "%b\n" "${RED}Failed to download Meslo Nerd-fonts.${NC}"; return 1; }
+    unzip "$FONT_ZIP" -d "$FONT_DIR" || { printf "%b\n" "${RED}Failed to unzip Meslo Nerd-fonts.${NC}"; return 1; }
+    rm "$FONT_ZIP"
+    fc-cache -fv || { printf "%b\n" "${RED}Failed to rebuild font cache.${NC}"; return 1; }
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Build completed successfully.${NC}"
-else
-    echo -e "${RED}Build failed. Check the log file for details: $LOG_FILE${NC}"
-fi
+    printf "%b\n" "${GREEN}Meslo Nerd-fonts installed successfully${NC}"
+}
 
-echo -e "${GREEN}---------------------------------------------------"
-echo -e "${GREEN}Script finished successfully!${NC}"
-echo -e "${GREEN}It is recommended to log out and log back in for all changes to take effect.${NC}"
+# Function to install picom animations
+picom_animations() {
+    mkdir -p "$HOME/.local/share/"
+    if [ ! -d "$HOME/.local/share/ftlabs-picom" ]; then
+        git clone https://github.com/FT-Labs/picom.git "$HOME/.local/share/ftlabs-picom" || { printf "%b\n" "${RED}Failed to clone picom repository.${NC}"; return 1; }
+    else
+        printf "%b\n" "${GREEN}Picom repository already exists, skipping clone.${NC}"
+    fi
+
+    cd "$HOME/.local/share/ftlabs-picom" || { printf "%b\n" "${RED}Failed to change directory to picom${NC}"; return 1; }
+    meson setup --buildtype=release build || { printf "%b\n" "${RED}Meson setup failed${NC}"; return 1; }
+    ninja -C build || { printf "%b\n" "${RED}Ninja build failed${NC}"; return 1; }
+    "$ESCALATION_TOOL" ninja -C build install || { printf "%b\n" "${RED}Failed to install picom${NC}"; return 1; }
+
+    printf "%b\n" "${GREEN}Picom animations installed successfully${NC}"
+}
+
+# Function to configure backgrounds
+configure_backgrounds() {
+    PIC_DIR="$HOME/Pictures"
+    BG_DIR="$PIC_DIR/backgrounds"
+
+    mkdir -p "$PIC_DIR"
+
+    if [ ! -d "$BG_DIR" ]; then
+        git clone https://github.com/ChrisTitusTech/nord-background.git "$PIC_DIR/nord-background" || { printf "%b\n" "${RED}Failed to clone backgrounds repository${NC}"; return 1; }
+        mv "$PIC_DIR/nord-background" "$BG_DIR"
+    else
+        printf "%b\n" "${GREEN}Backgrounds directory already exists, skipping download.${NC}"
+    fi
+}
+
+# Function to set up the display manager
+setupDisplayManager() {
+    printf "%b\n" "${YELLOW}Setting up Xorg${NC}"
+    case "$PACKAGER" in
+        pacman) "$ESCALATION_TOOL" "$PACKAGER" -S --needed --noconfirm xorg-xinit xorg-server ;;
+        apt-get|apt|nala) "$ESCALATION_TOOL" "$PACKAGER" install -y xorg xinit ;;
+        dnf) "$ESCALATION_TOOL" "$PACKAGER" install -y xorg-x11-xinit xorg-x11-server-Xorg ;;
+        *) printf "%b\n" "${RED}Unsupported package manager: $PACKAGER${NC}"; exit 1 ;;
+    esac
+
+    printf "%b\n" "${GREEN}Xorg installed successfully${NC}"
+    printf "%b\n" "${YELLOW}Setting up Display Manager${NC}"
+    currentdm="none"
+    for dm in gdm sddm lightdm; do
+        if systemctl is-active --quiet "$dm.service"; then
+            currentdm="$dm"
+            break
+        fi
+    done
+
+    if [ "$currentdm" = "none" ]; then
+        printf "%b\n" "${YELLOW}Pick your Display Manager${NC}"
+        printf "%b\n" "${YELLOW}1. SDDM${NC}"
+        printf "%b\n" "${YELLOW}2. LightDM${NC}"
+        printf "%b\n" "${YELLOW}3. GDM${NC}"
+        printf "%b\n" "${YELLOW}Please select one: ${NC}"
+        read -r DM
+        case "$DM" in
+            1) DM="sddm" ;;
+            2) DM="lightdm" ;;
+            3) DM="gdm" ;;
+            *) printf "%b\n" "${RED}Invalid option${NC}"; exit 1 ;;
+        esac
+        "$ESCALATION_TOOL" "$PACKAGER" install -y "$DM"
+        systemctl enable "$DM"
+    fi
+}
+
+# Function to install dwm
+install_Dwm() {
+    printf "Do you want to install dwm? (y/N): "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        printf "%b\n" "${YELLOW}Installing dwm${NC}"
+        cd "$HOME/.config/suckless/dwm" || { printf "%b\n" "${RED}Failed to change directory to dwm${NC}"; return 1; }
+        "$ESCALATION_TOOL" make clean install || { printf "%b\n" "${RED}Failed to install dwm${NC}"; return 1; }
+        printf "%b\n" "${GREEN}dwm installed successfully${NC}"
+    else
+        printf "%b\n" "${GREEN}Skipping dwm installation${NC}"
+    fi
+}
+
+# Function to install slstatus
+install_slstatus() {
+    printf "Do you want to install slstatus? (y/N): "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        printf "%b\n" "${YELLOW}Installing slstatus${NC}"
+        cd "$HOME/.config/suckless/slstatus" || { printf "%b\n" "${RED}Failed to change directory to slstatus${NC}"; return 1; }
+        "$ESCALATION_TOOL" make clean install || { printf "%b\n" "${RED}Failed to install slstatus${NC}"; return 1; }
+        printf "%b\n" "${GREEN}slstatus installed successfully${NC}"
+    else
+        printf "%b\n" "${GREEN}Skipping slstatus installation${NC}"
+    fi
+}
+
+# Main script execution
+install_Dwm
+install_slstatus
+install_nerd_font
+picom_animations
+configure_backgrounds
+setupDisplayManager
