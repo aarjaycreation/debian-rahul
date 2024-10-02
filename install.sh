@@ -89,6 +89,132 @@ chown "$USER":"$USER" "$USER_HOME/.bashrc"
 chown -R "$USER":"$USER" "$USER_HOME/.local"
 chown "$USER":"$USER" "$USER_HOME/.xinitrc"
 
+
+# Function to install dwm
+install_Dwm() {
+    printf "Do you want to install dwm? (y/N): "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        printf "%b\n" "${YELLOW}Installing dwm${NC}"
+        cd "$HOME/.config/suckless/dwm" || { printf "%b\n" "${RED}Failed to change directory to dwm${NC}"; return 1; }
+        "$ESCALATION_TOOL" make clean install || { printf "%b\n" "${RED}Failed to install dwm${NC}"; return 1; }
+        printf "%b\n" "${GREEN}dwm installed successfully${NC}"
+    else
+        printf "%b\n" "${GREEN}Skipping dwm installation${NC}"
+    fi
+}
+
+# Function to install slstatus
+install_slstatus() {
+    printf "Do you want to install slstatus? (y/N): "
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        printf "%b\n" "${YELLOW}Installing slstatus${NC}"
+        cd "$HOME/.config/suckless/slstatus" || { printf "%b\n" "${RED}Failed to change directory to slstatus${NC}"; return 1; }
+        "$ESCALATION_TOOL" make clean install || { printf "%b\n" "${RED}Failed to install slstatus${NC}"; return 1; }
+        printf "%b\n" "${GREEN}slstatus installed successfully${NC}"
+    else
+        printf "%b\n" "${GREEN}Skipping slstatus installation${NC}"
+    fi
+}
+
+installFastfetch() {
+
+
+
+    if ! command_exists fastfetch; then
+        printf "%b\n" "${YELLOW}Installing Fastfetch...${RC}"
+        case "$PACKAGER" in
+            pacman)
+                "$ESCALATION_TOOL" "$PACKAGER" -S --needed --noconfirm fastfetch
+                ;;
+            apt-get|nala)
+                curl -sSLo /tmp/fastfetch.deb https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb
+                "$ESCALATION_TOOL" "$PACKAGER" install -y /tmp/fastfetch.deb
+                rm /tmp/fastfetch.deb
+                ;;
+            *)
+                "$ESCALATION_TOOL" "$PACKAGER" install -y fastfetch
+                ;;
+        esac
+    else
+        printf "%b\n" "${GREEN}Fastfetch is already installed.${RC}"
+    fi
+}
+
+setupFastfetchConfig() {
+    printf "%b\n" "${YELLOW}Copying Fastfetch config files...${RC}"
+    if [ -d "${HOME}/.config/fastfetch" ] && [ ! -d "${HOME}/.config/fastfetch-bak" ]; then
+        cp -r "${HOME}/.config/fastfetch" "${HOME}/.config/fastfetch-bak"
+    fi
+    mkdir -p "${HOME}/.config/fastfetch/"
+    curl -sSLo "${HOME}/.config/fastfetch/config.jsonc" https://raw.githubusercontent.com/ChrisTitusTech/mybash/main/config.jsonc
+}
+
+
+installAlacritty() {
+
+
+
+    if ! command_exists alacritty; then
+    printf "%b\n" "${YELLOW}Installing Alacritty...${RC}"
+        case "$PACKAGER" in
+            pacman)
+                "$ESCALATION_TOOL" "$PACKAGER" -S --needed --noconfirm alacritty
+                ;;
+            *)
+                "$ESCALATION_TOOL" "$PACKAGER" install -y alacritty
+                ;;
+        esac
+    else
+        printf "%b\n" "${GREEN}Alacritty is already installed.${RC}"
+    fi
+}
+
+setupAlacrittyConfig() {
+    printf "%b\n" "${YELLOW}Copying alacritty config files...${RC}"
+    if [ -d "${HOME}/.config/alacritty" ] && [ ! -d "${HOME}/.config/alacritty-bak" ]; then
+        cp -r "${HOME}/.config/alacritty" "${HOME}/.config/alacritty-bak"
+    fi
+    mkdir -p "${HOME}/.config/alacritty/"
+    curl -sSLo "${HOME}/.config/alacritty/alacritty.toml" "https://github.com/ChrisTitusTech/dwm-titus/raw/main/config/alacritty/alacritty.toml"
+    curl -sSLo "${HOME}/.config/alacritty/keybinds.toml" "https://github.com/ChrisTitusTech/dwm-titus/raw/main/config/alacritty/keybinds.toml"
+    curl -sSLo "${HOME}/.config/alacritty/nordic.toml" "https://github.com/ChrisTitusTech/dwm-titus/raw/main/config/alacritty/nordic.toml"
+    printf "%b\n" "${GREEN}Alacritty configuration files copied.${RC}"
+}
+
+
+installStarshipAndFzf() {
+    if command_exists starship; then
+        printf "%b\n" "${GREEN}Starship already installed${RC}"
+        return
+    fi
+
+    if ! curl -sSL https://starship.rs/install.sh | sh; then
+        printf "%b\n" "${RED}Something went wrong during starship install!${RC}"
+        exit 1
+    fi
+    if command_exists fzf; then
+        printf "%b\n" "${GREEN}Fzf already installed${RC}"
+    else
+        git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+        "$ESCALATION_TOOL" ~/.fzf/install
+    fi
+}
+
+installZoxide() {
+    if command_exists zoxide; then
+        printf "%b\n" "${GREEN}Zoxide already installed${RC}"
+        return
+    fi
+
+    if ! curl -sSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh; then
+        printf "%b\n" "${RED}Something went wrong during zoxide install!${RC}"
+        exit 1
+    fi
+}
+
+
 # Function to install Meslo Nerd Fonts
 install_nerd_font() {
     FONT_DIR="$HOME/.local/share/fonts"
@@ -143,6 +269,10 @@ configure_backgrounds() {
         printf "%b\n" "${GREEN}Backgrounds directory already exists, skipping download.${NC}"
     fi
 }
+
+
+
+
 
 # Function to detect package manager
 detect_package_manager() {
@@ -203,37 +333,23 @@ setupDisplayManager() {
 
 
 
-# Function to install dwm
-install_Dwm() {
-    printf "Do you want to install dwm? (y/N): "
-    read -r response
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        printf "%b\n" "${YELLOW}Installing dwm${NC}"
-        cd "$HOME/.config/suckless/dwm" || { printf "%b\n" "${RED}Failed to change directory to dwm${NC}"; return 1; }
-        "$ESCALATION_TOOL" make clean install || { printf "%b\n" "${RED}Failed to install dwm${NC}"; return 1; }
-        printf "%b\n" "${GREEN}dwm installed successfully${NC}"
-    else
-        printf "%b\n" "${GREEN}Skipping dwm installation${NC}"
-    fi
-}
 
-# Function to install slstatus
-install_slstatus() {
-    printf "Do you want to install slstatus? (y/N): "
-    read -r response
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        printf "%b\n" "${YELLOW}Installing slstatus${NC}"
-        cd "$HOME/.config/suckless/slstatus" || { printf "%b\n" "${RED}Failed to change directory to slstatus${NC}"; return 1; }
-        "$ESCALATION_TOOL" make clean install || { printf "%b\n" "${RED}Failed to install slstatus${NC}"; return 1; }
-        printf "%b\n" "${GREEN}slstatus installed successfully${NC}"
-    else
-        printf "%b\n" "${GREEN}Skipping slstatus installation${NC}"
-    fi
-}
+
 
 # Main script execution
 install_Dwm
 install_slstatus
+
+
+installFastfetch
+# setupFastfetchConfig
+
+installAlacritty
+# setupAlacrittyConfig
+
+installStarshipAndFzf
+installZoxide
+
 install_nerd_font
 picom_animations
 configure_backgrounds

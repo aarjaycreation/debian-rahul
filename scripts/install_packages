@@ -32,8 +32,8 @@ echo -e "${YELLOW}Installing dependencies...${NC}"
 # List of main packages
 packages=(
     "xorg-dev"
-    "sxhkd"
-    "ranger"
+    # "sxhkd"
+    # "ranger"
     "gcc"
     "make"
     "libx11-dev"

@@ -3,7 +3,6 @@ xinit
 xserver-xorg
 xbacklight
 xbindkeys
-xvkbd
 xinput
 build-essential
 policykit-1-gnome
