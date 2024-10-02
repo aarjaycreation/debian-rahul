@@ -67,31 +67,31 @@ sudo chown "$USER":"$USER" "$USER_HOME/.bashrc"
 sudo chown -R "$USER":"$USER" "$USER_HOME/.local"
 sudo chown "$USER":"$USER" "$USER_HOME/.xinitrc"
 
-echo -e "${GREEN}---------------------------------------------------"
-echo -e "${GREEN}                 Updating Timezone"
-echo -e "${GREEN}---------------------------------------------------${NC}"
+# echo -e "${GREEN}---------------------------------------------------"
+# echo -e "${GREEN}                 Updating Timezone"
+# echo -e "${GREEN}---------------------------------------------------${NC}"
 
-if command -v apt > /dev/null 2>&1; then
-    sudo dpkg-reconfigure tzdata
-else
-    echo -e "${YELLOW}Unable to detect APT. Skipping."
-fi
+# if command -v apt > /dev/null 2>&1; then
+#     sudo dpkg-reconfigure tzdata
+# else
+#     echo -e "${YELLOW}Unable to detect APT. Skipping."
+# fi
 
-echo -e "${GREEN}---------------------------------------------------"
-echo -e "${GREEN}            Building DWM and SLStatus"
-echo -e "${GREEN}---------------------------------------------------${NC}"
+# echo -e "${GREEN}---------------------------------------------------"
+# echo -e "${GREEN}            Building DWM and SLStatus"
+# echo -e "${GREEN}---------------------------------------------------${NC}"
 
-cd "$HOME/.config/suckless/dwm"
-sudo make clean install 
-cd "$HOME/.config/suckless/slstatus"
-sudo make clean install 
+# cd "$HOME/.config/suckless/dwm"
+# sudo make clean install 
+# cd "$HOME/.config/suckless/slstatus"
+# sudo make clean install 
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Build completed successfully.${NC}"
-else
-    echo -e "${RED}Build failed. Check the log file for details: $LOG_FILE${NC}"
-fi
+# if [ $? -eq 0 ]; then
+#     echo -e "${GREEN}Build completed successfully.${NC}"
+# else
+#     echo -e "${RED}Build failed. Check the log file for details: $LOG_FILE${NC}"
+# fi
 
-echo -e "${GREEN}---------------------------------------------------"
-echo -e "${GREEN}Script finished successfully!${NC}"
-echo -e "${GREEN}It is recommended to log out and log back in for all changes to take effect.${NC}"
+# echo -e "${GREEN}---------------------------------------------------"
+# echo -e "${GREEN}Script finished successfully!${NC}"
+# echo -e "${GREEN}It is recommended to log out and log back in for all changes to take effect.${NC}"
