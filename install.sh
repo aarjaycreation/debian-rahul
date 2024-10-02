@@ -41,17 +41,44 @@ echo -e "       Moving dotfiles to correct location"
 echo -e "---------------------------------------------------${NC}"
 
 if [ -d "$DOTFILES_DIR" ]; then
-    cp -r "$DOTFILES_DIR/alacritty" "$DOTFILES_DIR/backgrounds" "$DOTFILES_DIR/fastfetch" \
-          "$DOTFILES_DIR/kitty" "$DOTFILES_DIR/picom" "$DOTFILES_DIR/rofi" \
-          "$DOTFILES_DIR/suckless" "$DESTINATION/" || { echo -e "${RED}Failed to copy dotfiles.${NC}"; exit 1; }
+    # Check if each directory or file has already been copied before copying
+    for dir in alacritty backgrounds fastfetch kitty picom rofi suckless; do
+        if [ -d "$DOTFILES_DIR/$dir" ] && [ ! -d "$DESTINATION/$dir" ]; then
+            echo -e "${YELLOW}Copying $dir...${NC}"
+            cp -r "$DOTFILES_DIR/$dir" "$DESTINATION/" || { echo -e "${RED}Failed to copy $dir.${NC}"; exit 1; }
+        else
+            echo -e "${GREEN}$dir already exists in the destination. Skipping...${NC}"
+        fi
+    done
 
-    cp "$DOTFILES_DIR/.bashrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .bashrc.${NC}"; exit 1; }
-    cp -r "$DOTFILES_DIR/.local" "$USER_HOME/" || { echo -e "${RED}Failed to copy .local directory.${NC}"; exit 1; }
-    cp "$DOTFILES_DIR/.xinitrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .xinitrc.${NC}"; exit 1; }
+    # Check if the .bashrc file exists before copying
+    if [ -f "$DOTFILES_DIR/.bashrc" ] && [ ! -f "$USER_HOME/.bashrc" ]; then
+        echo -e "${YELLOW}Copying .bashrc...${NC}"
+        cp "$DOTFILES_DIR/.bashrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .bashrc.${NC}"; exit 1; }
+    else
+        echo -e "${GREEN}.bashrc already exists in the destination. Skipping...${NC}"
+    fi
+
+    # Check if .local directory has already been copied
+    if [ -d "$DOTFILES_DIR/.local" ] && [ ! -d "$USER_HOME/.local" ]; then
+        echo -e "${YELLOW}Copying .local directory...${NC}"
+        cp -r "$DOTFILES_DIR/.local" "$USER_HOME/" || { echo -e "${RED}Failed to copy .local directory.${NC}"; exit 1; }
+    else
+        echo -e "${GREEN}.local directory already exists. Skipping...${NC}"
+    fi
+
+    # Check if the .xinitrc file exists before copying
+    if [ -f "$DOTFILES_DIR/.xinitrc" ] && [ ! -f "$USER_HOME/.xinitrc" ]; then
+        echo -e "${YELLOW}Copying .xinitrc...${NC}"
+        cp "$DOTFILES_DIR/.xinitrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .xinitrc.${NC}"; exit 1; }
+    else
+        echo -e "${GREEN}.xinitrc already exists in the destination. Skipping...${NC}"
+    fi
 else
     echo -e "${RED}Dotfiles directory does not exist.${NC}"
     exit 1
 fi
+
 
 echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Fixing Home dir permissions"
