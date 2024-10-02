@@ -6,75 +6,34 @@ RED="\033[1;31m"
 YELLOW="\033[1;33m"
 NC="\033[0m"  # No Color
 
-# Function to ensure the script is run with sudo privileges
-check_sudo() {
-    if [[ "$EUID" -ne 0 ]]; then
-        echo -e "${RED}This script must be run as root or with sudo privileges.${NC}"
-        exit 1
-    fi
-}
-
-# Function to check if the user is in the sudoers list
-check_sudo_user() {
-    SUDO_USER=$(whoami)
-
-    if sudo -l -U "$SUDO_USER" &> /dev/null; then
-        echo -e "${GREEN}User $SUDO_USER has sudo privileges.${NC}"
-    else
-        echo -e "${RED}User $SUDO_USER does not have sudo privileges.${NC}"
-        exit 1
-    fi
-}
-
-# Function to prompt for a sudo user if needed
-set_sudo_user() {
-    echo -e "${YELLOW}The script needs to run with sudo privileges.${NC}"
-    read -p "Enter the sudo user [default: $USER]: " sudo_user_input
-    SUDO_USER=${sudo_user_input:-$USER}
-
-    # Check if the entered user has sudo privileges
-    if sudo -l -U "$SUDO_USER" &> /dev/null; then
-        echo -e "${GREEN}User $SUDO_USER is a sudo user.${NC}"
-    else
-        echo -e "${RED}User $SUDO_USER does not have sudo privileges. Exiting.${NC}"
-        exit 1
-    fi
-}
-
-# Ensure the script is running with sudo privileges
-check_sudo
-
-# Prompt for and set sudo user if not already set
-set_sudo_user
-
 # Define the escalation tool (sudo)
-ESCALATION_TOOL="sudo -u $SUDO_USER"
+ESCALATION_TOOL="sudo"
 
-echo -e "${YELLOW}Running script as $SUDO_USER...${NC}"
+echo -e "${YELLOW}Running script...${NC}"
 
 # Define base directories
-USER_HOME="/home/$SUDO_USER"
+USER_HOME="$HOME"
 CONFIG_DIR="$USER_HOME/.config"
 SCRIPTS_DIR="$USER_HOME/debian-rahul/scripts"
 DOTFILES_DIR="$USER_HOME/debian-rahul/dotfiles"
 DESTINATION="$CONFIG_DIR"
 
 # Ensure scripts directory exists and correct permissions
-sudo chown -R "$SUDO_USER":"$SUDO_USER" "$SCRIPTS_DIR"
+chown -R "$USER":"$USER" "$SCRIPTS_DIR"
 
 echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Installing dependencies"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
 # Ensure required directories exist
-sudo -u "$SUDO_USER" mkdir -p "$CONFIG_DIR"
+mkdir -p "$CONFIG_DIR"
 cd "$SCRIPTS_DIR" || { echo -e "${RED}Failed to change directory to $SCRIPTS_DIR${NC}"; exit 1; }
 
 # Make sure all scripts are executable
-sudo chmod +x install_packages install_nala picom
+chmod +x install_packages install_nala picom
 
 # Execute the installation scripts
-sudo -u "$SUDO_USER" ./install_packages
+./install_packages
 
 # Moving dotfiles to the correct location
 echo -e "${GREEN}---------------------------------------------------"
@@ -82,13 +41,13 @@ echo -e "       Moving dotfiles to correct location"
 echo -e "---------------------------------------------------${NC}"
 
 if [ -d "$DOTFILES_DIR" ]; then
-    sudo -u "$SUDO_USER" cp -r "$DOTFILES_DIR/alacritty" "$DOTFILES_DIR/backgrounds" "$DOTFILES_DIR/fastfetch" \
+    cp -r "$DOTFILES_DIR/alacritty" "$DOTFILES_DIR/backgrounds" "$DOTFILES_DIR/fastfetch" \
           "$DOTFILES_DIR/kitty" "$DOTFILES_DIR/picom" "$DOTFILES_DIR/rofi" \
           "$DOTFILES_DIR/suckless" "$DESTINATION/" || { echo -e "${RED}Failed to copy dotfiles.${NC}"; exit 1; }
 
-    sudo -u "$SUDO_USER" cp "$DOTFILES_DIR/.bashrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .bashrc.${NC}"; exit 1; }
-    sudo -u "$SUDO_USER" cp -r "$DOTFILES_DIR/.local" "$USER_HOME/" || { echo -e "${RED}Failed to copy .local directory.${NC}"; exit 1; }
-    sudo -u "$SUDO_USER" cp "$DOTFILES_DIR/.xinitrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .xinitrc.${NC}"; exit 1; }
+    cp "$DOTFILES_DIR/.bashrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .bashrc.${NC}"; exit 1; }
+    cp -r "$DOTFILES_DIR/.local" "$USER_HOME/" || { echo -e "${RED}Failed to copy .local directory.${NC}"; exit 1; }
+    cp "$DOTFILES_DIR/.xinitrc" "$USER_HOME/" || { echo -e "${RED}Failed to copy .xinitrc.${NC}"; exit 1; }
 else
     echo -e "${RED}Dotfiles directory does not exist.${NC}"
     exit 1
@@ -98,11 +57,10 @@ echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Fixing Home dir permissions"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
-sudo chown -R "$SUDO_USER":"$SUDO_USER" "$USER_HOME/.config"
-sudo chown "$SUDO_USER":"$SUDO_USER" "$USER_HOME/.bashrc"
-sudo chown -R "$SUDO_USER":"$SUDO_USER" "$USER_HOME/.local"
-sudo chown "$SUDO_USER":"$SUDO_USER" "$USER_HOME/.xinitrc"
-
+chown -R "$USER":"$USER" "$USER_HOME/.config"
+chown "$USER":"$USER" "$USER_HOME/.bashrc"
+chown -R "$USER":"$USER" "$USER_HOME/.local"
+chown "$USER":"$USER" "$USER_HOME/.xinitrc"
 
 # Function to install Meslo Nerd Fonts
 install_nerd_font() {
