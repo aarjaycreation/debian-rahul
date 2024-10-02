@@ -53,6 +53,8 @@ thunar-archive-plugin
 thunar-volman
 lxappearance
 rofi 
+libev-dev
 ninja-build
+cmake
 
    
