@@ -52,8 +52,7 @@ thunar
 thunar-archive-plugin
 thunar-volman
 lxappearance
-rofi
-meson 
+rofi 
 ninja-build
 
    

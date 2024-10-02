@@ -32,6 +32,7 @@ echo -e "${YELLOW}Installing dependencies...${NC}"
 # List of main packages
 packages=(
     "xorg-dev"
+    "meson"
     # "sxhkd"
     # "ranger"
     "gcc"
