@@ -33,6 +33,7 @@ if command -v apt > /dev/null 2>&1; then
         "libxft-dev"
         "libxinerama-dev"
         "libimlib2-dev" 
+        "libxcb-res0-dev"
     )
 
     # Function to read and append common packages from a file
