@@ -57,57 +57,39 @@ else
     exit 1
 fi
 
-# Fixing permissions for user directory
 echo -e "${GREEN}---------------------------------------------------"
-echo -e "            Fixing Home dir permissions"
-echo -e "---------------------------------------------------${NC}"
+echo -e "${GREEN}            Fixing Home dir permissions"
+echo -e "${GREEN}---------------------------------------------------${NC}"
 
-chown -R "$USER":"$USER" "$CONFIG_DIR"
-chown "$USER":"$USER" "$USER_HOME/.bashrc"
-chown -R "$USER":"$USER" "$USER_HOME/.local"
-chown "$USER":"$USER" "$USER_HOME/.xinitrc"
+sudo chown -R "$USER":"$USER" "$USER_HOME/.config"
+sudo chown -R "$USER":"$USER" "$USER_HOME/scripts"
+sudo chown "$USER":"$USER" "$USER_HOME/.bashrc"
+sudo chown -R "$USER":"$USER" "$USER_HOME/.local"
+sudo chown "$USER":"$USER" "$USER_HOME/.xinitrc"
 
-# Fix permissions for user-installed dwm if it exists
-if [ -f "$HOME/.local/bin/dwm" ]; then
-    chown "$USER":"$USER" "$HOME/.local/bin/dwm"
-    chmod +x "$HOME/.local/bin/dwm"
-    echo -e "${GREEN}Permissions for $HOME/.local/bin/dwm fixed.${NC}"
+echo -e "${GREEN}---------------------------------------------------"
+echo -e "${GREEN}                 Updating Timezone"
+echo -e "${GREEN}---------------------------------------------------${NC}"
+
+if command -v apt > /dev/null 2>&1; then
+    sudo dpkg-reconfigure tzdata
 else
-    echo -e "${YELLOW}DWM not found in $HOME/.local/bin/dwm, skipping permissions fix.${NC}"
+    echo -e "${YELLOW}Unable to detect APT. Skipping."
 fi
 
 echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Building DWM and SLStatus"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
-# Build DWM
-echo -e "${YELLOW}Building DWM...${NC}"
-if [ -d "$HOME/.config/suckless/dwm" ]; then
-    cd "$HOME/.config/suckless/dwm" || { echo "DWM build directory not found!"; exit 1; }
-    make clean install
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}DWM build completed successfully.${NC}"
-    else
-        echo -e "${RED}DWM build failed. Check for errors during compilation.${NC}"
-        exit 1
-    fi
-else
-    echo -e "${RED}DWM build directory not found! Skipping...${NC}"
-fi
+cd "$HOME/.config/suckless/dwm"
+sudo make clean install 
+cd "$HOME/.config/suckless/slstatus"
+sudo make clean install 
 
-# Build SLStatus
-echo -e "${YELLOW}Building SLStatus...${NC}"
-if [ -d "$HOME/.config/suckless/slstatus" ]; then
-    cd "$HOME/.config/suckless/slstatus" || { echo "SLStatus build directory not found!"; exit 1; }
-    make clean install
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}SLStatus build completed successfully.${NC}"
-    else
-        echo -e "${RED}SLStatus build failed. Check for errors during compilation.${NC}"
-        exit 1
-    fi
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Build completed successfully.${NC}"
 else
-    echo -e "${RED}SLStatus build directory not found! Skipping...${NC}"
+    echo -e "${RED}Build failed. Check the log file for details: $LOG_FILE${NC}"
 fi
 
 echo -e "${GREEN}---------------------------------------------------"
