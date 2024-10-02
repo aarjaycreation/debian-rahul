@@ -22,12 +22,9 @@ echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Installing dependencies"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
-# Prompt user to install dependencies that require sudo
+# Prompt user to install dependencies that require 
 echo -e "${YELLOW}Please ensure you have the following dependencies installed:${NC}"
-echo -e "${YELLOW} - build-essential (for make and gcc)${NC}"
-echo -e "${YELLOW} - libx11-dev, libxft-dev, libxinerama-dev (for DWM build)${NC}"
-echo -e "${YELLOW} - picom, alacritty, rofi, kitty${NC}"
-echo -e "${YELLOW}Run 'sudo apt install' for these if they are missing.${NC}"
+
 
 # Create directories safely
 mkdir -p "$CONFIG_DIR"
@@ -61,37 +58,37 @@ echo -e "${GREEN}---------------------------------------------------"
 echo -e "${GREEN}            Fixing Home dir permissions"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
-sudo chown -R "$USER":"$USER" "$USER_HOME/.config"
-sudo chown -R "$USER":"$USER" "$USER_HOME/scripts"
-sudo chown "$USER":"$USER" "$USER_HOME/.bashrc"
-sudo chown -R "$USER":"$USER" "$USER_HOME/.local"
-sudo chown "$USER":"$USER" "$USER_HOME/.xinitrc"
+chown -R "$USER":"$USER" "$USER_HOME/.config"
+chown -R "$USER":"$USER" "$USER_HOME/scripts"
+chown "$USER":"$USER" "$USER_HOME/.bashrc"
+chown -R "$USER":"$USER" "$USER_HOME/.local"
+chown "$USER":"$USER" "$USER_HOME/.xinitrc"
 
-# echo -e "${GREEN}---------------------------------------------------"
-# echo -e "${GREEN}                 Updating Timezone"
-# echo -e "${GREEN}---------------------------------------------------${NC}"
+echo -e "${GREEN}---------------------------------------------------"
+echo -e "${GREEN}                 Updating Timezone"
+echo -e "${GREEN}---------------------------------------------------${NC}"
 
-# if command -v apt > /dev/null 2>&1; then
-#     sudo dpkg-reconfigure tzdata
-# else
-#     echo -e "${YELLOW}Unable to detect APT. Skipping."
-# fi
+if command -v apt > /dev/null 2>&1; then
+     dpkg-reconfigure tzdata
+else
+    echo -e "${YELLOW}Unable to detect APT. Skipping."
+fi
 
-# echo -e "${GREEN}---------------------------------------------------"
-# echo -e "${GREEN}            Building DWM and SLStatus"
-# echo -e "${GREEN}---------------------------------------------------${NC}"
+echo -e "${GREEN}---------------------------------------------------"
+echo -e "${GREEN}            Building DWM and SLStatus"
+echo -e "${GREEN}---------------------------------------------------${NC}"
 
-# cd "$HOME/.config/suckless/dwm"
-# sudo make clean install 
-# cd "$HOME/.config/suckless/slstatus"
-# sudo make clean install 
+cd "$HOME/.config/suckless/dwm"
+ make clean install 
+cd "$HOME/.config/suckless/slstatus"
+ make clean install 
 
-# if [ $? -eq 0 ]; then
-#     echo -e "${GREEN}Build completed successfully.${NC}"
-# else
-#     echo -e "${RED}Build failed. Check the log file for details: $LOG_FILE${NC}"
-# fi
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Build completed successfully.${NC}"
+else
+    echo -e "${RED}Build failed. Check the log file for details: $LOG_FILE${NC}"
+fi
 
-# echo -e "${GREEN}---------------------------------------------------"
-# echo -e "${GREEN}Script finished successfully!${NC}"
-# echo -e "${GREEN}It is recommended to log out and log back in for all changes to take effect.${NC}"
+echo -e "${GREEN}---------------------------------------------------"
+echo -e "${GREEN}Script finished successfully!${NC}"
+echo -e "${GREEN}It is recommended to log out and log back in for all changes to take effect.${NC}"
