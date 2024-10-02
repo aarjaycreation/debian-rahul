@@ -81,6 +81,7 @@ echo -e "${GREEN}            Building DWM and SLStatus"
 echo -e "${GREEN}---------------------------------------------------${NC}"
 
 # Build DWM
+echo -e "${YELLOW}Building DWM...${NC}"
 if [ -d "$HOME/.config/suckless/dwm" ]; then
     cd "$HOME/.config/suckless/dwm" || { echo "DWM build directory not found!"; exit 1; }
     make clean install
@@ -88,12 +89,14 @@ if [ -d "$HOME/.config/suckless/dwm" ]; then
         echo -e "${GREEN}DWM build completed successfully.${NC}"
     else
         echo -e "${RED}DWM build failed. Check for errors during compilation.${NC}"
+        exit 1
     fi
 else
     echo -e "${RED}DWM build directory not found! Skipping...${NC}"
 fi
 
 # Build SLStatus
+echo -e "${YELLOW}Building SLStatus...${NC}"
 if [ -d "$HOME/.config/suckless/slstatus" ]; then
     cd "$HOME/.config/suckless/slstatus" || { echo "SLStatus build directory not found!"; exit 1; }
     make clean install
@@ -101,6 +104,7 @@ if [ -d "$HOME/.config/suckless/slstatus" ]; then
         echo -e "${GREEN}SLStatus build completed successfully.${NC}"
     else
         echo -e "${RED}SLStatus build failed. Check for errors during compilation.${NC}"
+        exit 1
     fi
 else
     echo -e "${RED}SLStatus build directory not found! Skipping...${NC}"
