@@ -337,8 +337,8 @@ setupDisplayManager() {
 
 
 # Main script execution
-install_Dwm
-install_slstatus
+# install_Dwm
+# install_slstatus
 
 
 installFastfetch
@@ -352,5 +352,5 @@ installZoxide
 
 install_nerd_font
 picom_animations
-configure_backgrounds
-setupDisplayManager
+# configure_backgrounds
+# setupDisplayManager
