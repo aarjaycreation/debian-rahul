@@ -120,23 +120,27 @@ install_slstatus() {
 
 
 
+# Helper function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
 installFastfetch() {
-
-
-
     if ! command_exists fastfetch; then
-        printf "%b\n" "${YELLOW}Installing Fastfetch...${RC}"
+        printf "%b\n" "${YELLOW}Installing Fastfetch...${NC}"
+
         case "$PACKAGER" in
             pacman)
                 "$ESCALATION_TOOL" "$PACKAGER" -S --needed --noconfirm fastfetch
                 ;;
-            apt-get|nala)
+            apt-get|apt|nala)
+                # Download the latest Fastfetch .deb package
                 curl -sSLo /tmp/fastfetch.deb https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb
-                "$ESCALATION_TOOL" "$PACKAGER" install -y /tmp/fastfetch.deb
+                
+                # Install the .deb package using apt
+                "$ESCALATION_TOOL" dpkg -i /tmp/fastfetch.deb || "$ESCALATION_TOOL" apt-get install -f -y
+                
+                # Remove the .deb package after installation
                 rm /tmp/fastfetch.deb
                 ;;
             *)
@@ -144,9 +148,11 @@ installFastfetch() {
                 ;;
         esac
     else
-        printf "%b\n" "${GREEN}Fastfetch is already installed.${RC}"
+        printf "%b\n" "${GREEN}Fastfetch is already installed.${NC}"
     fi
 }
+
+
 
 setupFastfetchConfig() {
     printf "%b\n" "${YELLOW}Copying Fastfetch config files...${RC}"
@@ -158,24 +164,32 @@ setupFastfetchConfig() {
 }
 
 
+
 installAlacritty() {
-
-
-
     if ! command_exists alacritty; then
-    printf "%b\n" "${YELLOW}Installing Alacritty...${RC}"
+        printf "%b\n" "${YELLOW}Installing Alacritty...${NC}"
+
         case "$PACKAGER" in
             pacman)
                 "$ESCALATION_TOOL" "$PACKAGER" -S --needed --noconfirm alacritty
+                ;;
+            apt-get|apt|nala)
+                # Add Alacritty PPA if necessary for Debian-based systems
+                if ! grep -q "^deb .*/ppa.launchpad.net/alacritty" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
+                    sudo add-apt-repository ppa:aslatter/ppa -y
+                    sudo apt-get update
+                fi
+                "$ESCALATION_TOOL" "$PACKAGER" install -y alacritty
                 ;;
             *)
                 "$ESCALATION_TOOL" "$PACKAGER" install -y alacritty
                 ;;
         esac
     else
-        printf "%b\n" "${GREEN}Alacritty is already installed.${RC}"
+        printf "%b\n" "${GREEN}Alacritty is already installed.${NC}"
     fi
 }
+
 
 setupAlacrittyConfig() {
     printf "%b\n" "${YELLOW}Copying alacritty config files...${RC}"
